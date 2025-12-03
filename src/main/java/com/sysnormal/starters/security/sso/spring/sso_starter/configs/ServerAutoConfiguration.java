@@ -26,10 +26,10 @@ import org.springframework.context.annotation.Configuration;
 //@ConditionalOnClass({TomcatServletWebServerFactory.class})
 @EnableConfigurationProperties(ServerProperties.class)
 @ComponentScan(basePackages = {
-        "com.oiis.sso_starter.services.mail",
-        "com.oiis.sso_starter.services.jwt",
-        "com.oiis.sso_starter.services.auth",
-        "com.oiis.sso_starter.server.auth"
+        "com.sysnormal.starters.security.sso.spring.sso_starter.services.mail",
+        "com.sysnormal.starters.security.sso.spring.sso_starter.services.jwt",
+        "com.sysnormal.starters.security.sso.spring.sso_starter.services.auth",
+        "com.sysnormal.starters.security.sso.spring.sso_starter.server.auth"
 })
 public class ServerAutoConfiguration {
 

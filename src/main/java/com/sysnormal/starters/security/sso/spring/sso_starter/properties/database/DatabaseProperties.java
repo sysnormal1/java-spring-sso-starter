@@ -38,7 +38,7 @@ public class DatabaseProperties {
     @Setter
     public static class Flyway {
         private boolean enabled = false;
-        private String[] locations = {"classpath:com.oiis.sso_starter.properties.database.migrations"};
+        private String[] locations = {"classpath:com.sysnormal.starters.security.sso.spring.sso_starter.properties.database.migrations"};
         private boolean baselineOnMigrate = true;
 
 
@@ -48,7 +48,7 @@ public class DatabaseProperties {
          */
         public void setLocations(String[] locations) {
             // Define the default location
-            String defaultLocation = "classpath:com/oiis/sso_starter/database/migrations";
+            String defaultLocation = "classpath:com/sysnormal/starters/security/sso/spring/sso_starter/database/migrations";
 
             // Se o usuário não passou nada, mantém o padrão
             if (locations == null || locations.length == 0) {
