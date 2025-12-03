@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.sysnormal.starters.security.sso.spring</groupId>
+	<artifactId>sso-starter</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>sso-starter</name>
+    <description>Spring Boot Starter sso</description>
+    <url>https://github.com/sysnormal1/java-spring-sso-starter</url>
+
+    <organization>
+        <name>SYSNORMAL</name>
+        <url>https://github.com/sysnormal1/java-spring-sso-starter</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/sysnormal1/java-spring-sso-starter</url>
+        <connection>scm:git:git://github.com/sysnormal1/java-spring-sso-starter.git</connection>
+        <developerConnection>scm:git:ssh://github.com/sysnormal1/java-spring-sso-starter.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>sysnormal</id>
+            <name>Alencar Velozo</name>
+            <email>sysnormal1@gmail.com</email>
+            <organization>SYSNORMAL</organization>
+            <organizationUrl>https://github.com/sysnormal1</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
+
+	<dependencies>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+		</plugins>
+	</build>
+
+</project>
