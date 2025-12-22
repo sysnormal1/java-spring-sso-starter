@@ -91,10 +91,8 @@ public class SecurityAutoConfiguration {
                     .cors(cors -> {
                     }) // enable CORS
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(properties.getPublicEndPoints().toArray(new String[0]))
-                            .permitAll()
-                            .anyRequest()
-                            .denyAll()
+                            .requestMatchers(properties.getPublicEndPoints().toArray(new String[0])).permitAll()
+                            .anyRequest().permitAll()
                     );
             result = http.build();
             logger.debug("no errors on  {}.{}", this.getClass().getSimpleName(), "ssoFilterChain");

@@ -2,13 +2,14 @@ package com.sysnormal.starters.security.sso.spring.sso_starter.services.auth.goo
 
 
 import com.sysnormal.libs.commons.DefaultDataSwap;
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.User;
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.repositories.sso.UsersRepository;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.Agent;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.IdentifierType;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.repositories.sso.AgentsRepository;
 import com.sysnormal.starters.security.sso.spring.sso_starter.helpers.http.HttpUtils;
 import com.sysnormal.starters.security.sso.spring.sso_starter.helpers.security.PasswordUtils;
 import com.sysnormal.starters.security.sso.spring.sso_starter.properties.auth.google.GoogleAuthProperties;
 import com.sysnormal.starters.security.sso.spring.sso_starter.properties.security.SecurityProperties;
-import com.sysnormal.starters.security.sso.spring.sso_starter.server.auth.dtos.UserRequestDTO;
+import com.sysnormal.starters.security.sso.spring.sso_starter.server.auth.dtos.AgentRequestDTO;
 import com.sysnormal.starters.security.sso.spring.sso_starter.server.auth.google.dtos.HandleCodeDTO;
 import com.sysnormal.starters.security.sso.spring.sso_starter.services.auth.AuthenticationService;
 import org.slf4j.Logger;
@@ -45,19 +46,19 @@ public class GoogleAuthService {
     private GoogleAuthProperties properties;
     private SecurityProperties securityProperties;
     private AuthenticationService authenticationService;
-    UsersRepository usersRepository;
+    AgentsRepository agentsRepository;
 
     public GoogleAuthService(
             GoogleAuthProperties properties,
             SecurityProperties securityProperties,
             AuthenticationService authenticationService,
-            UsersRepository usersRepository,
+            AgentsRepository agentsRepository,
             ObjectMapper objectMapper
     ) {
         this.properties = properties;
         this.securityProperties = securityProperties;
         this.authenticationService = authenticationService;
-        this.usersRepository = usersRepository;
+        this.agentsRepository = agentsRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -112,18 +113,23 @@ public class GoogleAuthService {
             logger.debug("token info {}",tokenInfo);
             String email = (String) tokenInfo.getOrDefault("email","");
             if (StringUtils.hasText(email)) {
-                Optional<User> user = usersRepository.findByEmail(email.trim().toLowerCase());
-                if (user.isPresent()) {
-                    result = authenticationService.getAuthDataResult(user, false, null, null, true, null);
+                Optional<Agent> agent = agentsRepository.findByIdentifierTypeIdAndIdentifierOrEmail(
+                        IdentifierType.EMAIL_ID,
+                        email.trim().toLowerCase(),
+                        email.trim().toLowerCase()
+                );
+                if (agent.isPresent()) {
+                    result = authenticationService.getAuthDataResult(agent, false, null, null, true, null);
                 } else {
                     String password = PasswordUtils.generateCompliantPassword(email, securityProperties.getPasswordRules());
-                    UserRequestDTO userRequestDTO = new UserRequestDTO();
-                    userRequestDTO.setEmail(email);
-                    userRequestDTO.setPassword(password);
-                    result = authenticationService.register(userRequestDTO);
+                    AgentRequestDTO agentRequestDTO = new AgentRequestDTO();
+                    agentRequestDTO.setIdentifier(email);
+                    agentRequestDTO.setEmail(email);
+                    agentRequestDTO.setPassword(password);
+                    result = authenticationService.register(agentRequestDTO);
                 }
             } else {
-                throw new Exception("token info not contains email");
+                throw new Exception("token info not contains identifier");
             }
         } catch (Exception e) {
             result.setException(e);

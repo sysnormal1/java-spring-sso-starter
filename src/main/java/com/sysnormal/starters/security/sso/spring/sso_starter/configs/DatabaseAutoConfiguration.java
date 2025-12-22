@@ -1,7 +1,7 @@
 package com.sysnormal.starters.security.sso.spring.sso_starter.configs;
 
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.User;
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.repositories.sso.UsersRepository;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.Agent;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.repositories.sso.AgentsRepository;
 import com.sysnormal.starters.security.sso.spring.sso_starter.properties.database.DatabaseProperties;
 import com.sysnormal.libs.utils.Constants;
 import jakarta.persistence.EntityManagerFactory;
@@ -32,7 +32,7 @@ import java.util.Map;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableJpaRepositories(
-        basePackageClasses = UsersRepository.class,
+        basePackageClasses = AgentsRepository.class,
         entityManagerFactoryRef = DatabaseAutoConfiguration.entityManagerFactoryQualifier,
         transactionManagerRef = DatabaseAutoConfiguration.transactionManagerQualifier
 )
@@ -106,7 +106,7 @@ public class DatabaseAutoConfiguration {
             jpaProps.put(Constants.Hibernate.GLOBALLY_QUOTED_IDENTIFIERS.PROPERTY, properties.getJpa().getHibernate().isGloballyQuotedIdentifiers());
             result = builder
                     .dataSource(ssoDataSource())
-                    .packages(User.class)
+                    .packages(Agent.class)
                     .persistenceUnit(persistenceUnitName)
                     .properties(jpaProps)
                     .build();

@@ -1,7 +1,7 @@
 package com.sysnormal.starters.security.sso.spring.sso_starter.services.jwt;
 
 import com.sysnormal.libs.commons.DefaultDataSwap;
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.User;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.Agent;
 import com.sysnormal.starters.security.sso.spring.sso_starter.properties.jwt.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -40,17 +40,17 @@ public class JwtService {
         this.jwtParsaer = Jwts.parser().setSigningKey(key).build();
     }
 
-    public String createToken(User user, Long expiration) {
+    public String createToken(Agent agent, Long expiration) {
         String result = null;
-        if (user != null) {
-            if (user.getTokenExpirationTime() != null) {
-                expiration = user.getTokenExpirationTime();
+        if (agent != null) {
+            if (agent.getTokenExpirationTime() != null) {
+                expiration = agent.getTokenExpirationTime();
             }
-            logger.debug("creating token for user {}, email {}, expiration ",user.getId(),user.getEmail(), expiration);
+            logger.debug("creating token for agent {}, identifier {}, expiration ",agent.getId(),agent.getIdentifier(), expiration);
             JwtBuilder builder = Jwts.builder()
                     .signWith(key, SignatureAlgorithm.HS256) // usa a mesma key, mas novo builder
-                    .setSubject(String.valueOf(user.getId()))
-                    .claim("id", user.getId())
+                    .setSubject(String.valueOf(agent.getId()))
+                    .claim("id", agent.getId())
                     .setIssuedAt(new Date());
             if (expiration > 0) {
                 builder.setExpiration(new Date(System.currentTimeMillis() + expiration));
@@ -60,12 +60,12 @@ public class JwtService {
         return result;
     }
 
-    public String createToken(User user) {
-        return createToken(user, jwtProperties.getDefaultTokenExpiration()); //1 minute
+    public String createToken(Agent agent) {
+        return createToken(agent, jwtProperties.getDefaultTokenExpiration()); //1 minute
     }
 
-    public String createRefreshToken(User user) {
-        return createToken(user, 86400000L); //1 day
+    public String createRefreshToken(Agent agent) {
+        return createToken(agent, 86400000L); //1 day
     }
 
     public DefaultDataSwap checkToken(String token){
@@ -74,9 +74,9 @@ public class JwtService {
             logger.debug("checking token {}",token);
             if (StringUtils.hasText(token)) {
                 Claims claims = jwtParsaer.parseClaimsJws(token).getBody();
-                String userId = String.valueOf(claims.get("id"));
-                if (StringUtils.hasText(userId)) {
-                    result.data = userId;
+                String agentId = String.valueOf(claims.get("id"));
+                if (StringUtils.hasText(agentId)) {
+                    result.data = agentId;
                     result.success = true;
                 } else {
                     result.message = "invalid token";

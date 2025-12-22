@@ -21,11 +21,11 @@ public class PasswordUtils {
     /**
      * Gera uma senha que respeita as regras configuradas e futuras.
      *
-     * @param email email do usuário (para evitar partes do e-mail na senha)
+     * @param identifier identifier do usuário (para evitar partes do e-mail na senha)
      * @param rules propriedades com as regras (mínimo, necessidade de caracteres especiais etc)
      * @return senha aleatória válida
      */
-    public static String generateCompliantPassword(String email, SecurityProperties.PasswordRules rules) {
+    public static String generateCompliantPassword(String identifier, SecurityProperties.PasswordRules rules) {
         int minLength = Optional.ofNullable(rules.getMinLength()).orElse(8);
         boolean requireUppercase = Optional.ofNullable(rules.getRequireUppercase()).orElse(true);
         boolean requireLowercase = Optional.ofNullable(rules.getRequireLowercase()).orElse(true);
@@ -45,7 +45,7 @@ public class PasswordUtils {
         String password;
         do {
             password = buildPassword(minLength, requireUppercase, requireLowercase, requireDigits, requireSpecial, allChars);
-        } while (!isPasswordCompliant(password, email, rules));
+        } while (!isPasswordCompliant(password, identifier, rules));
 
         return password;
     }
@@ -80,13 +80,13 @@ public class PasswordUtils {
         return pool.charAt(random.nextInt(pool.length()));
     }
 
-    private static boolean isPasswordCompliant(String password, String email, SecurityProperties.PasswordRules rules) {
+    private static boolean isPasswordCompliant(String password, String identifier, SecurityProperties.PasswordRules rules) {
         // 1. comprimento
         if (password.length() < rules.getMinLength()) return false;
 
         // 2. partes do email
-        if (email != null && !email.isBlank()) {
-            String localPart = email.split("@")[0].toLowerCase();
+        if (identifier != null && !identifier.isBlank()) {
+            String localPart = identifier.split("@")[0].toLowerCase();
             if (password.toLowerCase().contains(localPart)) return false;
         }
 

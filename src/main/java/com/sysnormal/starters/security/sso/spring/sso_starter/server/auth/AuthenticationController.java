@@ -34,25 +34,25 @@ public class AuthenticationController {
     /**
      * login
      *
-     * @param userDto the user parameters
+     * @param agentRequestDTO the agent parameters
      * @return response entity
      */
     @PostMapping("/login")
-    public ResponseEntity<DefaultDataSwap> login(@RequestBody(required = false) UserRequestDTO userDto) {
-        logger.debug("requested login {}",userDto.getEmail());
-        return authenticationService.login(userDto).sendHttpResponse();
+    public ResponseEntity<DefaultDataSwap> login(@RequestBody(required = false) AgentRequestDTO agentRequestDTO) {
+        logger.debug("requested login {}",agentRequestDTO != null ? agentRequestDTO.getIdentifier() : null);
+        return authenticationService.login(agentRequestDTO).sendHttpResponse();
     }
 
     /**
      * register
      *
-     * @param userDto the user parameters
+     * @param agentRequestDTO the agent parameters
      * @return response entity
      */
     @PostMapping("/register")
-    public ResponseEntity<DefaultDataSwap> register(@RequestBody(required = false) UserRequestDTO userDto) {
-        logger.debug("requested register {}",userDto.getEmail());
-        return authenticationService.register(userDto).sendHttpResponse();
+    public ResponseEntity<DefaultDataSwap> register(@RequestBody(required = false) AgentRequestDTO agentRequestDTO) {
+        logger.debug("requested register {}",agentRequestDTO != null ? agentRequestDTO.getIdentifier() : null);
+        return authenticationService.register(agentRequestDTO).sendHttpResponse();
     }
 
     /**
@@ -63,7 +63,7 @@ public class AuthenticationController {
      */
     @PostMapping("/check_token")
     public ResponseEntity<DefaultDataSwap> checkToken(@RequestBody(required = false) TokenRequestDTO tokenDto) {
-        logger.debug("requested check_token {}",tokenDto.getToken());
+        logger.debug("requested check_token {}",tokenDto != null ? tokenDto.getToken() : null);
         return authenticationService.checkTokenFromDto(tokenDto).sendHttpResponse();
     }
 
@@ -75,7 +75,7 @@ public class AuthenticationController {
      */
     @PostMapping("/refresh_token")
     public ResponseEntity<DefaultDataSwap> refreshToken(@RequestBody(required = false) RefreshTokenRequestDTO refreshTokenDto) {
-        logger.debug("requested refresh_token {}",refreshTokenDto.getRefreshToken());
+        logger.debug("requested refresh_token {}",refreshTokenDto != null ? refreshTokenDto.getRefreshToken() : null);
         return authenticationService.refreshTokenFromDto(refreshTokenDto).sendHttpResponse();
     }
 
@@ -87,7 +87,7 @@ public class AuthenticationController {
      */
     @PostMapping("/send_email_recover_password")
     public ResponseEntity<DefaultDataSwap> sendEmailRecoverPassword(@RequestBody(required = false) PasswordRecoverRequestDTO passwordRecoverRequestDTO) {
-        logger.debug("requested send_email_recover_password {} {}",passwordRecoverRequestDTO.getEmail(), passwordRecoverRequestDTO.getPasswordChangeInterfacePath());
+        logger.debug("requested send_email_recover_password {}",passwordRecoverRequestDTO != null ? passwordRecoverRequestDTO.getIdentifier() + "," +  passwordRecoverRequestDTO.getPasswordChangeInterfacePath() : null);
         return authenticationService.sendEmailRecoverPasswordFromDto(passwordRecoverRequestDTO).sendHttpResponse();
     }
 
@@ -99,7 +99,7 @@ public class AuthenticationController {
      */
     @PostMapping("/password_change")
     public ResponseEntity<DefaultDataSwap> passwordChange(@RequestBody(required = false) PasswordChangeRequestDTO passwordChangeRequestDTO) {
-        logger.debug("requested password_change {}",passwordChangeRequestDTO.getToken());
+        logger.debug("requested password_change {}",passwordChangeRequestDTO != null ? passwordChangeRequestDTO.getToken() : null);
         return authenticationService.passwordChangeFromDto(passwordChangeRequestDTO).sendHttpResponse();
     }
 }

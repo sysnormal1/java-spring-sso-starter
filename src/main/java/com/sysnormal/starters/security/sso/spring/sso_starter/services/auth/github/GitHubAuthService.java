@@ -1,13 +1,14 @@
 package com.sysnormal.starters.security.sso.spring.sso_starter.services.auth.github;
 
 import com.sysnormal.libs.commons.DefaultDataSwap;
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.User;
-import com.sysnormal.starters.security.sso.spring.sso_starter.database.repositories.sso.UsersRepository;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.Agent;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.entities.sso.IdentifierType;
+import com.sysnormal.starters.security.sso.spring.sso_starter.database.repositories.sso.AgentsRepository;
 import com.sysnormal.starters.security.sso.spring.sso_starter.helpers.http.HttpUtils;
 import com.sysnormal.starters.security.sso.spring.sso_starter.helpers.security.PasswordUtils;
 import com.sysnormal.starters.security.sso.spring.sso_starter.properties.auth.github.GitHubAuthProperties;
 import com.sysnormal.starters.security.sso.spring.sso_starter.properties.security.SecurityProperties;
-import com.sysnormal.starters.security.sso.spring.sso_starter.server.auth.dtos.UserRequestDTO;
+import com.sysnormal.starters.security.sso.spring.sso_starter.server.auth.dtos.AgentRequestDTO;
 import com.sysnormal.starters.security.sso.spring.sso_starter.server.auth.github.dtos.HandleCodeDTOG;
 import com.sysnormal.starters.security.sso.spring.sso_starter.services.auth.AuthenticationService;
 import org.slf4j.Logger;
@@ -35,8 +36,8 @@ public class GitHubAuthService {
 
     private static final String GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize";
     private static final String GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
-    private static final String GITHUB_USER_URL = "https://api.github.com/user";
-    private static final String GITHUB_USER_EMAIL_URL = "https://api.github.com/user/emails";
+    private static final String GITHUB_AGENT_URL = "https://api.github.com/user";
+    private static final String GITHUB_AGENT_EMAIL_URL = "https://api.github.com/user/emails";
 
     private final ObjectMapper objectMapper;
 
@@ -44,19 +45,19 @@ public class GitHubAuthService {
     private GitHubAuthProperties properties;
     private SecurityProperties securityProperties;
     private AuthenticationService authenticationService;
-    private UsersRepository usersRepository;
+    private AgentsRepository agentRepository;
 
     public GitHubAuthService(
             GitHubAuthProperties properties,
             SecurityProperties securityProperties,
             AuthenticationService authenticationService,
-            UsersRepository usersRepository,
+            AgentsRepository agentRepository,
             ObjectMapper objectMapper
     ) {
         this.properties = properties;
         this.securityProperties = securityProperties;
         this.authenticationService = authenticationService;
-        this.usersRepository = usersRepository;
+        this.agentRepository = agentRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -81,26 +82,31 @@ public class GitHubAuthService {
             logger.debug("Successfully obtained access token");
 
             // Obter informações do usuário
-            Map<String, Object> userInfo = getUserInfo(accessToken);
+            Map<String, Object> oAuth2AgentInfo = getOAuth2AgentInfo(accessToken);
 
-            logger.debug("User info: {}", userInfo);
+            logger.debug("OAuth2 agent info: {}", oAuth2AgentInfo);
 
             // Obter email (pode estar em um endpoint separado se não estiver público)
-            String email = getEmail(userInfo, accessToken);
+            String email = getEmail(oAuth2AgentInfo, accessToken);
 
             if (StringUtils.hasText(email)) {
-                Optional<User> user = usersRepository.findByEmail(email.trim().toLowerCase());
-                if (user.isPresent()) {
-                    result = authenticationService.getAuthDataResult(user, false, null, null, true, null);
+                Optional<Agent> agent = agentRepository.findByIdentifierTypeIdAndIdentifierOrEmail(
+                        IdentifierType.EMAIL_ID,
+                        email.trim().toLowerCase(),
+                        email.trim().toLowerCase()
+                );
+                if (agent.isPresent()) {
+                    result = authenticationService.getAuthDataResult(agent, false, null, null, true, null);
                 } else {
                     String password = PasswordUtils.generateCompliantPassword(email, securityProperties.getPasswordRules());
-                    UserRequestDTO userRequestDTO = new UserRequestDTO();
-                    userRequestDTO.setEmail(email);
-                    userRequestDTO.setPassword(password);
-                    result = authenticationService.register(userRequestDTO);
+                    AgentRequestDTO agentRequestDTO = new AgentRequestDTO();
+                    agentRequestDTO.setIdentifier(email);
+                    agentRequestDTO.setEmail(email);
+                    agentRequestDTO.setPassword(password);
+                    result = authenticationService.register(agentRequestDTO);
                 }
             } else {
-                throw new Exception("User info does not contain email");
+                throw new Exception("Agent info does not contain email");
             }
         } catch (Exception e) {
             result.setException(e);
@@ -139,9 +145,9 @@ public class GitHubAuthService {
         return (String) json.get("access_token");
     }
 
-    private Map<String, Object> getUserInfo(String accessToken) throws Exception {
+    private Map<String, Object> getOAuth2AgentInfo(String accessToken) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GITHUB_USER_URL))
+                .uri(URI.create(GITHUB_AGENT_URL))
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Accept", "application/json")
                 .GET()
@@ -151,15 +157,15 @@ public class GitHubAuthService {
                 .send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            throw new RuntimeException("Failed to get user info: " + response.body());
+            throw new RuntimeException("Failed to get agent info: " + response.body());
         }
 
         return objectMapper.readValue(response.body(), Map.class);
     }
 
-    private String getEmail(Map<String, Object> userInfo, String accessToken) throws Exception {
-        // Primeiro tenta pegar o email direto do userInfo
-        String email = (String) userInfo.get("email");
+    private String getEmail(Map<String, Object> agentInfo, String accessToken) throws Exception {
+        // Primeiro tenta pegar o email direto do agentInfo
+        String email = (String) agentInfo.get("email");
 
         if (StringUtils.hasText(email)) {
             return email;
@@ -169,7 +175,7 @@ public class GitHubAuthService {
         logger.debug("Email not public, fetching from emails endpoint");
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GITHUB_USER_EMAIL_URL))
+                .uri(URI.create(GITHUB_AGENT_EMAIL_URL))
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Accept", "application/json")
                 .GET()
@@ -179,7 +185,7 @@ public class GitHubAuthService {
                 .send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            throw new RuntimeException("Failed to get user emails: " + response.body());
+            throw new RuntimeException("Failed to get agent emails: " + response.body());
         }
 
         // GitHub retorna uma lista de emails
@@ -206,6 +212,6 @@ public class GitHubAuthService {
             }
         }
 
-        throw new Exception("No verified email found for GitHub user");
+        throw new Exception("No verified email found for GitHub agent");
     }
 }
