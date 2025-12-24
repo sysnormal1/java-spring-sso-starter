@@ -8,11 +8,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
@@ -54,24 +59,30 @@ public class SecurityAutoConfiguration {
      * @return the cors configuration
      */
     @Bean
-    @ConditionalOnMissingBean(name = "corsConfigurationSource")
+    //@ConditionalOnMissingBean(name = "corsConfigurationSource")
+    @Primary
     public CorsConfigurationSource corsConfigurationSource() {
         logger.debug("INIT {}.{}", this.getClass().getSimpleName(), "corsConfigurationSource");
-        UrlBasedCorsConfigurationSource result = null;
-        try {
-            CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOriginPatterns(List.of("*"));
-            configuration.setAllowedMethods(List.of("*"));
-            configuration.setAllowedHeaders(List.of("*"));
-            configuration.setAllowCredentials(true);
-            result = new UrlBasedCorsConfigurationSource();
-            result.registerCorsConfiguration("/**", configuration);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("https://*", "http://*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
         logger.debug("END {}.{}", this.getClass().getSimpleName(), "corsConfigurationSource");
-        return result;
+        return source;
     }
+
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public CorsFilter corsFilter(CorsConfigurationSource source) {
+        logger.debug("INIT {}.{}", this.getClass().getSimpleName(), "corsFilter");
+        logger.debug("END {}.{}", this.getClass().getSimpleName(), "corsFilter");
+        return new CorsFilter(source);
+    }
+
 
     /**
      * filter chain
@@ -88,10 +99,10 @@ public class SecurityAutoConfiguration {
         try {
             http
                     .csrf(csrf -> csrf.disable())
-                    .cors(cors -> {
-                    }) // enable CORS
+                    .cors(Customizer.withDefaults()) // enable CORS
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(properties.getPublicEndPoints().toArray(new String[0])).permitAll()
+                            //.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            //.requestMatchers(properties.getPublicEndPoints().toArray(new String[0])).permitAll()
                             .anyRequest().permitAll()
                     );
             result = http.build();
